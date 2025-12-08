@@ -71,13 +71,6 @@ This allows teachers to conduct immediate assessments at the end of a class to v
     * Simply open `index.html` in Chrome or Edge browser.
     * **Note:** Microphone access is required.
 
----
-
-## 📸 Screenshots
-
-*(Add screenshots of the Main Interface and the Quiz Section here)*
-
----
 
 ## 🤝 Contribution
 
