@@ -343,7 +343,7 @@
 
     <script>
         // --- CONSTANTS ---
-        const API_KEY = "AIzaSyDnkjwtMXyybrCz7SE04ntx-Yg46gMkXUQ"; 
+        const API_KEY = "AIzaSyC8uZxDvkqSKUMrKblkJNawUYF8guLMeKE"; 
         
         // --- STATE ---
         let recognition;
@@ -531,13 +531,26 @@
         async function callGeminiTranslate(text) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
             const prompt = `Translate to English (if not already). Correct grammar. Return ONLY clean text. Input: "${text}"`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.warn("Translation API Error:", data.error);
+                    return null;
+                }
+
+                return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            } catch (e) {
+                console.warn("Translation Network Error", e);
+                return null;
+            }
         }
 
         async function generateAnalysis() {
@@ -551,10 +564,11 @@
 
             try {
                 const data = await callGeminiAnalysis(text);
+                if (!data) throw new Error("No data returned");
                 renderAnalysis(data);
             } catch (e) {
-                console.error(e);
-                showToast("Analysis Failed");
+                console.error("Analysis Error:", e);
+                showToast("Analysis Failed: " + e.message);
                 document.getElementById('loadingAnalysis').classList.add('hidden');
                 document.getElementById('analysisEmpty').classList.remove('hidden');
             }
@@ -578,20 +592,36 @@
                 }
                 Transcript: "${text.substring(0, 12000)}"
             `;
+            
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
             });
+            
             const data = await response.json();
-            return JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text);
+            
+            // Handle API Errors gracefully
+            if (data.error) {
+                throw new Error(data.error.message || "API Error");
+            }
+
+            let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+            if (!rawText) throw new Error("No content generated");
+
+            // Sanitize Markdown if present (Critical Fix)
+            // Removes ```json and ``` wrapping
+            rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+            return JSON.parse(rawText);
         }
 
         function renderAnalysis(data) {
             document.getElementById('loadingAnalysis').classList.add('hidden');
             document.getElementById('analysisContent').classList.remove('hidden');
 
-            document.getElementById('summaryText').innerText = data.summary;
+            document.getElementById('summaryText').innerText = data.summary || "No summary available.";
             
             // Action Items
             const actionList = document.getElementById('actionItemsList');
@@ -607,26 +637,35 @@
             }
 
             // Keywords
-            document.getElementById('keywordsList').innerHTML = data.keywords.map(k => `
-                <span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-700">#${k}</span>
-            `).join('');
+            const kwList = document.getElementById('keywordsList');
+            if (data.keywords && data.keywords.length > 0) {
+                kwList.innerHTML = data.keywords.map(k => `
+                    <span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-700">#${k}</span>
+                `).join('');
+            } else {
+                 kwList.innerHTML = "";
+            }
 
             // Quiz
-            quizData = data.quiz;
+            quizData = data.quiz || [];
             const form = document.getElementById('quizForm');
-            form.innerHTML = quizData.map((q, idx) => `
-                <div class="border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0">
-                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2">${idx+1}. ${q.question}</p>
-                    <div class="space-y-1">
-                        ${q.options.map((opt, oIdx) => `
-                            <label class="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                <input type="radio" name="q${idx}" value="${oIdx}" class="text-brand-600 focus:ring-brand-500 bg-gray-100 border-gray-300">
-                                <span class="text-xs text-slate-600 dark:text-slate-400">${opt}</span>
-                            </label>
-                        `).join('')}
+            if (quizData.length > 0) {
+                form.innerHTML = quizData.map((q, idx) => `
+                    <div class="border-b border-gray-100 dark:border-gray-800 pb-4 last:border-0">
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2">${idx+1}. ${q.question}</p>
+                        <div class="space-y-1">
+                            ${q.options.map((opt, oIdx) => `
+                                <label class="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                    <input type="radio" name="q${idx}" value="${oIdx}" class="text-brand-600 focus:ring-brand-500 bg-gray-100 border-gray-300">
+                                    <span class="text-xs text-slate-600 dark:text-slate-400">${opt}</span>
+                                </label>
+                            `).join('')}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            } else {
+                form.innerHTML = "<p class='text-xs text-slate-500'>No quiz generated.</p>";
+            }
             
             // Store analysis in session
             const sess = sessions.find(s => s.id === currentSessionId);
@@ -666,9 +705,10 @@
         function loadLibrary() {
             const stored = localStorage.getItem('proscribe_data');
             if (stored) {
-                sessions = JSON.parse(stored);
-                // Clean bad data
-                sessions = sessions.filter(s => s && s.id);
+                try {
+                    sessions = JSON.parse(stored);
+                    sessions = sessions.filter(s => s && s.id);
+                } catch(e) { sessions = []; }
             }
             
             if (sessions.length === 0) {
@@ -701,7 +741,7 @@
             if (!sess) return;
 
             if(els.title) els.title.value = sess.title;
-            if(els.editor) els.editor.innerHTML = sess.content;
+            if(els.editor) els.editor.innerHTML = sess.content || "";
             
             // Load Analysis if exists
             if (sess.analysis) {
