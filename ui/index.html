@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassPulse AI - ACIS System</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        serif: ['Merriweather', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0f172a',
+                            primary: '#6366f1',
+                            secondary: '#8b5cf6',
+                            accent: '#38bdf8',
+                            neon: '#00ff88',
+                            coral: '#f43f5e',
+                            amber: '#f59e0b',
+                            ocean: '#0ea5e9',
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite alternate',
+                        'float': 'float 4s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'scale-in': 'scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'shimmer': 'shimmer 2.5s linear infinite',
+                        'glow-pulse': 'glowPulse 2s ease-in-out infinite',
+                        'wave': 'wave 1.2s ease-in-out infinite',
+                        'bounce-in': 'bounceIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards',
+                        'slide-in-right': 'slideInRight 0.5s cubic-bezier(0.16,1,0.3,1) forwards',
+                        'spin-slow': 'spin 8s linear infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        scaleIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% center' },
+                            '100%': { backgroundPosition: '200% center' },
+                        },
+                        glowPulse: {
+                            '0%,100%': { boxShadow: '0 0 20px rgba(99,102,241,0.4)' },
+                            '50%': { boxShadow: '0 0 60px rgba(99,102,241,0.9), 0 0 100px rgba(139,92,246,0.4)' },
+                        },
+                        wave: {
+                            '0%,100%': { transform: 'scaleY(0.4)' },
+                            '50%': { transform: 'scaleY(1)' },
+                        },
+                        bounceIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.3)' },
+                            '50%': { transform: 'scale(1.08)' },
+                            '70%': { transform: 'scale(0.92)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                        slideInRight: {
+                            '0%': { opacity: '0', transform: 'translateX(30px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' },
+                        },
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(99, 102, 241, 0.5)',
+                        'glow-lg': '0 0 40px rgba(99,102,241,0.8), 0 0 80px rgba(139,92,246,0.3)',
+                        'neon': '0 0 20px rgba(0,255,136,0.6), 0 0 40px rgba(0,255,136,0.3)',
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                        'card': '0 20px 60px rgba(0,0,0,0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Merriweather:wght@300;400;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            transition: background-color 0.6s ease;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(99, 102, 241, 0.4);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(99, 102, 241, 0.7);
+        }
+
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: border-color 0.4s, box-shadow 0.4s;
+        }
+
+        .glass-panel-light {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.07);
+        }
+
+        /* Flip Card */
+        .flip-card {
+            perspective: 1200px;
+        }
+
+        .flip-card-inner {
+            transition: transform 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            inset: 0;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        ::selection {
+            background: rgba(99, 102, 241, 0.32);
+            color: white;
+        }
+
+        /* ===== THEME VARIABLES ===== */
+        :root {
+            --accent: #6366f1;
+            --accent2: #8b5cf6;
+            --accent3: #38bdf8;
+        }
+
+        [data-theme="neon"] {
+            --accent: #00ff88;
+            --accent2: #00d4ff;
+            --accent3: #bf00ff;
+        }
+
+        [data-theme="ocean"] {
+            --accent: #0ea5e9;
+            --accent2: #06b6d4;
+            --accent3: #34d399;
+        }
+
+        /* Neon theme overrides */
+        [data-theme="neon"] {
+            background-color: #020c05;
+        }
+
+        [data-theme="neon"] .glass-panel {
+            background: rgba(0, 255, 136, 0.04);
+            border-color: rgba(0, 255, 136, 0.15);
+        }
+
+        [data-theme="neon"] nav.cpnav {
+            background: rgba(2, 12, 5, 0.96) !important;
+            border-color: rgba(0, 255, 136, 0.2) !important;
+        }
+
+        [data-theme="neon"] .nav-active {
+            background: linear-gradient(135deg, #00ff88, #00d4ff) !important;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5) !important;
+        }
+
+        /* Ocean theme overrides */
+        [data-theme="ocean"] {
+            background-color: #0c1a2e;
+        }
+
+        [data-theme="ocean"] .glass-panel {
+            background: rgba(14, 165, 233, 0.06);
+            border-color: rgba(14, 165, 233, 0.15);
+        }
+
+        [data-theme="ocean"] nav.cpnav {
+            background: rgba(5, 15, 30, 0.96) !important;
+            border-color: rgba(14, 165, 233, 0.2) !important;
+        }
+
+        [data-theme="ocean"] .nav-active {
+            background: linear-gradient(135deg, #0ea5e9, #34d399) !important;
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.5) !important;
+        }
+
+        /* Shimmer text */
+        .shimmer-text {
+            background: linear-gradient(90deg, #6366f1 0%, #fff 40%, #8b5cf6 60%, #38bdf8 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Waveform */
+        .waveform-bar {
+            width: 4px;
+            border-radius: 3px;
+            background: linear-gradient(to top, #6366f1, #38bdf8);
+            transform-origin: bottom;
+            animation: wave 1.2s ease-in-out infinite;
+        }
+
+        .waveform-bar:nth-child(1) {
+            animation-delay: 0s;
+            height: 14px
+        }
+
+        .waveform-bar:nth-child(2) {
+            animation-delay: 0.1s;
+            height: 26px
+        }
+
+        .waveform-bar:nth-child(3) {
+            animation-delay: 0.2s;
+            height: 18px
+        }
+
+        .waveform-bar:nth-child(4) {
+            animation-delay: 0.3s;
+            height: 34px
+        }
+
+        .waveform-bar:nth-child(5) {
+            animation-delay: 0.4s;
+            height: 22px
+        }
+
+        .waveform-bar:nth-child(6) {
+            animation-delay: 0.15s;
+            height: 30px
+        }
+
+        .waveform-bar:nth-child(7) {
+            animation-delay: 0.25s;
+            height: 16px
+        }
+
+        .waveform-bar:nth-child(8) {
+            animation-delay: 0.35s;
+            height: 24px
+        }
+
+        /* Confetti */
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(105vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti-piece {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            border-radius: 3px;
+            animation: confettiFall linear forwards;
+        }
+
+        /* Stat card hover */
+        .stat-card {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Stagger reveals */
+        .stagger-1 {
+            opacity: 0;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards
+        }
+
+        .stagger-2 {
+            opacity: 0;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards
+        }
+
+        .stagger-3 {
+            opacity: 0;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards
+        }
+
+        .stagger-4 {
+            opacity: 0;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards
+        }
+
+        /* Ripple button */
+        .ripple-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.18) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.4s ease;
+        }
+
+        .ripple-btn:active::after {
+            transform: scale(2.5);
+            opacity: 0;
+            transition: none;
+        }
+
+        /* Theme switcher pill */
+        .theme-pill {
+            display: flex;
+            gap: 6px;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+        }
+
+        .theme-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.25s ease;
+            border: 2px solid transparent;
+        }
+
+        .theme-dot:hover {
+            transform: scale(1.15);
+        }
+
+        .theme-dot.active {
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Glow pulse */
+        .glow-pulse {
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        /* Word count badge */
+        .word-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+            letter-spacing: 0.04em;
+            transition: all 0.3s;
+        }
+
+        .word-badge.hot {
+            background: rgba(244, 63, 94, 0.15);
+            border-color: rgba(244, 63, 94, 0.3);
+            color: #fda4af;
+        }
+
+        nav.cpnav {
+            transition: background 0.5s ease, border-color 0.5s ease;
+        }
+    </style>
+</head>
+
+<body class="h-screen overflow-hidden antialiased">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+        // ===== CONFETTI COMPONENT =====
+        const Confetti = ({ active }) => {
+            const [pieces, setPieces] = useState([]);
+            useEffect(() => {
+                if (!active) return;
+                const colors = ['#6366f1', '#8b5cf6', '#38bdf8', '#f43f5e', '#f59e0b', '#00ff88', '#ec4899'];
+                const newPieces = Array.from({ length: 80 }, (_, i) => ({
+                    id: i,
+                    left: Math.random() * 100,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    duration: 1.5 + Math.random() * 2,
+                    delay: Math.random() * 0.8,
+                    size: 6 + Math.random() * 10,
+                    rotation: Math.random() * 360,
+                }));
+                setPieces(newPieces);
+                const t = setTimeout(() => setPieces([]), 4000);
+                return () => clearTimeout(t);
+            }, [active]);
+            return (
+                <>
+                    {pieces.map(p => (
+                        <div key={p.id} className="confetti-piece" style={{
+                            left: `${p.left}%`, top: '-20px',
+                            width: p.size, height: p.size,
+                            backgroundColor: p.color,
+                            animationDuration: `${p.duration}s`,
+                            animationDelay: `${p.delay}s`,
+                            transform: `rotate(${p.rotation}deg)`,
+                        }} />
+                    ))}
+                </>
+            );
+        };
+
+        // ===== WAVEFORM VISUALIZER =====
+        const Waveform = ({ active }) => {
+            if (!active) return null;
+            return (
+                <div className="flex items-end gap-1" style={{ height: 40 }}>
+                    {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+                        <div key={i} className="waveform-bar" />
+                    ))}
+                </div>
+            );
+        };
+
+        // ===== THEME SWITCHER =====
+        const ThemeSwitcher = ({ theme, setTheme }) => {
+            const themes = [
+                { id: 'dark', emoji: '🌑', label: 'Dark' },
+                { id: 'neon', emoji: '⚡', label: 'Neon' },
+                { id: 'ocean', emoji: '🌊', label: 'Ocean' },
+            ];
+            return (
+                <div className="theme-pill" title="Switch theme">
+                    {themes.map(t => (
+                        <button key={t.id} onClick={() => setTheme(t.id)}
+                            className={`theme-dot ${theme === t.id ? 'active' : ''}`}
+                            title={t.label}>
+                            {t.emoji}
+                        </button>
+                    ))}
+                </div>
+            );
+        };
+
+        // ===== WORD COUNTER =====
+        const WordCounter = ({ text }) => {
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+            const isLong = words > 300;
+            return (
+                <div className={`word-badge ${isLong ? 'hot' : ''}`}>
+                    <span>{words}w</span>
+                    <span style={{ opacity: 0.5 }}>·</span>
+                    <span>{chars}c</span>
+                </div>
+            );
+        };
+
+        // --- ICON SYSTEM (Fixed Sizing) ---
+
+        const IconWrapper = ({ children, size = 24, className, ...props }) => (
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={size}
+                height={size}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={className}
+                {...props}
+            >
+                {children}
+            </svg>
+        );
+
+        const Icons = {
+            Mic: (props) => <IconWrapper {...props}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" x2="12" y1="19" y2="22" /></IconWrapper>,
+            Stop: (props) => <IconWrapper {...props}><rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor" /></IconWrapper>,
+            Sparkles: (props) => <IconWrapper {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M9 3v4" /><path d="M7 5h4" /></IconWrapper>,
+            History: (props) => <IconWrapper {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12" /></IconWrapper>,
+            FileText: (props) => <IconWrapper {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /><line x1="16" x2="8" y1="17" y2="17" /><line x1="10" x2="8" y1="9" y2="9" /></IconWrapper>,
+            Brain: (props) => <IconWrapper {...props}><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z" /><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z" /></IconWrapper>,
+            Layers: (props) => <IconWrapper {...props}><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" /><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" /><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" /></IconWrapper>,
+            Check: (props) => <IconWrapper {...props}><polyline points="20 6 9 17 4 12" /></IconWrapper>,
+            X: (props) => <IconWrapper {...props}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></IconWrapper>,
+            ChevronRight: (props) => <IconWrapper {...props}><path d="m9 18 6-6-6-6" /></IconWrapper>,
+            RotateCcw: (props) => <IconWrapper {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12" /><path d="M3 3v9h9" /></IconWrapper>,
+            Download: (props) => <IconWrapper {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></IconWrapper>,
+            Copy: (props) => <IconWrapper {...props}><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></IconWrapper>,
+            Loader2: (props) => <IconWrapper {...props}><path d="M21 12a9 9 0 1 1-6.219-8.56" /></IconWrapper>,
+            Zap: (props) => <IconWrapper {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></IconWrapper>,
+            TrendingUp: (props) => <IconWrapper {...props}><polyline points="23 6 13.5 15.5 8.5 10.5 2 17" /><polyline points="17 6 23 6 23 12" /></IconWrapper>,
+            AlertTriangle: (props) => <IconWrapper {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></IconWrapper>,
+            Eye: (props) => <IconWrapper {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></IconWrapper>,
+            Video: (props) => <IconWrapper {...props}><path d="m22 8-6 4 6 4V8Z" /><rect width="14" height="12" x="2" y="6" rx="2" ry="2" /></IconWrapper>,
+            Presentation: (props) => <IconWrapper {...props}><path d="M2 3h20" /><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" /><path d="m7 21 5-5 5 5" /></IconWrapper>,
+            Lightbulb: (props) => <IconWrapper {...props}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><path d="M9 18h6" /><path d="M10 22h4" /></IconWrapper>
+        };
+
+        // --- TOAST COMPONENT ---
+        const Toast = ({ message, type, onClose }) => {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+            const bgClass = type === 'error' ? 'bg-rose-500' : 'bg-emerald-500';
+            return (
+                <div className={`fixed top-6 right-6 ${bgClass} text-white px-6 py-4 rounded-2xl shadow-glow flex items-center gap-3 z-50 animate-scale-in border border-white/20 backdrop-blur-md`}>
+                    {type === 'success' ? <Icons.Check size={20} /> : <Icons.X size={20} />}
+                    <span className="font-semibold tracking-wide text-sm">{message}</span>
+                </div>
+            );
+        };
+
+        // Helper function to generate dynamic velocity data
+        const getVelocityBars = (history) => {
+            // We want to display the last 5 sessions' scores (velocity)
+            const numBars = 5;
+            let velocityData = [];
+
+            // 1. Get the last 'numBars' valid sessions
+            const relevantHistory = history
+                .filter(item => item.teacherScore && item.teacherScore.score != null)
+                .slice(0, numBars)
+                .reverse(); // Reverse to show oldest on left
+
+            // 2. Map scores to bar heights (1-10 scale -> 20%-100% height)
+            velocityData = relevantHistory.map((item, index) => {
+                const score = item.teacherScore.score;
+                // Scale score (1-10) to height (20-100) for visual representation
+                const height = Math.min(100, Math.max(20, score * 10));
+                return {
+                    height: height,
+                    score: score,
+                    isLatest: index === relevantHistory.length - 1
+                };
+            });
+
+            // 3. Pad with placeholder data if less than 5 points
+            while (velocityData.length < numBars) {
+                velocityData.unshift({
+                    height: Math.floor(Math.random() * (35 - 15 + 1) + 15), // Placeholder height
+                    score: null,
+                    isLatest: false
+                });
+            }
+
+            // Return only the final 5 bars
+            return velocityData.slice(-numBars);
+        };
+
+        // --- APP COMPONENT ---
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('record');
+            const [inputText, setInputText] = useState('');
+            const [isRecording, setIsRecording] = useState(false);
+            const [isProcessing, setIsProcessing] = useState(false);
+            const [toast, setToast] = useState(null);
+            const [theme, setThemeState] = useState(() => localStorage.getItem('cp_theme') || 'dark');
+            const [recordSecs, setRecordSecs] = useState(0);
+            const [showConfetti, setShowConfetti] = useState(false);
+
+            // Generated Data
+            const [notes, setNotes] = useState('');
+            const [quiz, setQuiz] = useState([]);
+            const [flashcards, setFlashcards] = useState([]);
+            const [history, setHistory] = useState([]);
+
+            // ACIS Intelligence State
+            const [teacherScore, setTeacherScore] = useState(null);
+            const [longTermMemory, setLongTermMemory] = useState({ weakConcepts: [], masteryHistory: [] });
+
+            // Video State
+            const [videoUrl, setVideoUrl] = useState(null);
+            const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+
+            const recognitionRef = useRef(null);
+            const recordTimerRef = useRef(null);
+
+            const showToast = (msg, type = 'success') => setToast({ message: msg, type });
+
+            const setTheme = (t) => {
+                setThemeState(t);
+                localStorage.setItem('cp_theme', t);
+                document.documentElement.setAttribute('data-theme', t);
+            };
+
+            // Apply theme on mount + change
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', theme);
+            }, [theme]);
+
+            // Recording timer
+            useEffect(() => {
+                if (isRecording) {
+                    setRecordSecs(0);
+                    recordTimerRef.current = setInterval(() => setRecordSecs(s => s + 1), 1000);
+                } else {
+                    clearInterval(recordTimerRef.current);
+                }
+                return () => clearInterval(recordTimerRef.current);
+            }, [isRecording]);
+
+            const fireConfetti = () => {
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 100);
+            };
+
+            // Initialize Speech Recognition & Load Memory/History
+            useEffect(() => {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    recognitionRef.current = new SpeechRecognition();
+                    recognitionRef.current.continuous = true;
+                    recognitionRef.current.interimResults = true;
+                    recognitionRef.current.lang = 'en-US';
+
+                    recognitionRef.current.onstart = () => setIsRecording(true);
+                    recognitionRef.current.onend = () => {
+                        setIsRecording(false);
+                    };
+                    recognitionRef.current.onresult = (event) => {
+                        let finalTranscript = '';
+                        for (let i = event.resultIndex; i < event.results.length; ++i) {
+                            if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+                        }
+                        if (finalTranscript) setInputText(prev => prev + ' ' + finalTranscript);
+                    };
+                }
+
+                // Load Memory
+                try {
+                    const savedMem = localStorage.getItem('acis_memory');
+                    if (savedMem) {
+                        const parsed = JSON.parse(savedMem);
+                        setLongTermMemory(prev => ({ ...prev, ...parsed }));
+                    }
+                } catch (e) {
+                    console.error("Error loading memory:", e);
+                }
+
+                // Load History
+                try {
+                    const savedHist = localStorage.getItem('classplus_history');
+                    if (savedHist) setHistory(JSON.parse(savedHist));
+                } catch (e) {
+                    console.error("Error loading history:", e);
+                }
+            }, []);
+
+            const toggleRecording = () => {
+                if (!recognitionRef.current) return showToast("Speech recognition not supported", 'error');
+                if (isRecording) {
+                    recognitionRef.current.stop();
+                } else {
+                    try {
+                        recognitionRef.current.start();
+                    } catch (e) {
+                        console.warn("Speech recognition already active");
+                    }
+                }
+            };
+
+            const saveSessionToHistory = (newItem) => {
+                setHistory(prev => {
+                    const updated = [newItem, ...prev];
+                    // Keep history capped to a reasonable size, e.g., 50 sessions
+                    const saved = updated.slice(0, 50);
+                    localStorage.setItem('classplus_history', JSON.stringify(saved));
+                    return saved;
+                });
+            };
+
+            // NEW LOGIC: Update Memory (Retention Gaps) based on Quiz Answers (Mastery Check)
+            const updateMemory = (quizAnswers) => {
+                setLongTermMemory(prevMemory => {
+                    // Start with the existing list of weak concepts
+                    let currentWeak = new Set(prevMemory.weakConcepts || []);
+
+                    quizAnswers.forEach(answer => {
+                        // If the answer was incorrect, ADD the concept to the weak list
+                        if (!answer.correct) {
+                            currentWeak.add(answer.concept);
+                        } else {
+                            // If the answer was correct, REMOVE it from the weak list (mastery achieved)
+                            currentWeak.delete(answer.concept);
+                        }
+                    });
+
+                    const newWeakConcepts = Array.from(currentWeak);
+                    const newMemory = { ...prevMemory, weakConcepts: newWeakConcepts };
+
+                    // Save to persistent storage
+                    localStorage.setItem('acis_memory', JSON.stringify(newMemory));
+                    return newMemory;
+                });
+            };
+
+            const generateVideo = async () => {
+                if (!inputText.trim()) return showToast("No text to generate video from", "error");
+
+                setIsGeneratingVideo(true);
+                try {
+                    const response = await fetch("/api/generate-video", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: inputText }),
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || "Video generation failed");
+
+                    setVideoUrl(data.video_url);
+                    showToast("Video generated successfully!");
+                } catch (e) {
+                    console.error(e);
+                    showToast(e.message, "error");
+                } finally {
+                    setIsGeneratingVideo(false);
+                }
+            };
+
+            const processContent = async () => {
+                if (!inputText.trim()) {
+                    showToast("Please enter or record some text first", "error");
+                    return;
+                }
+
+                setIsProcessing(true);
+
+                // --- API Call Simulation/Wrapper ---
+                const maxRetries = 3;
+                let lastError = null;
+
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        const apiUrl = "/api/generate-notes";
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: inputText }),
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            console.error("Backend Error Response:", data);
+                            throw new Error(data.error || "Backend returned non-OK status.");
+                        }
+
+                        // Success block
+                        setNotes(data.notes || "No notes generated.");
+                        setTeacherScore(data.teacher_score || { score: 0, simplicity: 0, clarity: 0, examples: 0, feedback: "No feedback" });
+                        setQuiz(data.quiz || []);
+                        setFlashcards(data.flashcards || []);
+                        setVideoUrl(null); // Reset video on new analysis
+                        setActiveTab("notes");
+
+                        saveSessionToHistory({
+                            id: Date.now(),
+                            date: new Date().toLocaleDateString(),
+                            time: new Date().toLocaleTimeString(),
+                            preview: (data.notes || inputText).substring(0, 100) + '...',
+                            fullText: inputText,
+                            notes: data.notes,
+                            quiz: data.quiz || [],
+                            flashcards: data.flashcards || [],
+                            teacherScore: data.teacher_score
+                        });
+
+                        showToast("ACIS analysis complete!", "success");
+                        setIsProcessing(false);
+                        return; // Exit function on success
+                    } catch (err) {
+                        lastError = err;
+                        console.warn(`Attempt ${i + 1} failed. Retrying...`, err);
+                        if (i < maxRetries - 1) {
+                            await new Promise(resolve => setTimeout(resolve, (2 ** i) * 1000)); // Exponential backoff
+                        }
+                    }
+                }
+
+                // If loop completes without returning (all retries failed)
+                console.error("Final error generating notes:", lastError);
+                showToast(`Error: ${lastError.message}`, "error");
+                // --- End API Call Simulation/Wrapper ---
+
+                setIsProcessing(false);
+            };
+
+            const loadSession = (session) => {
+                setInputText(session.fullText);
+                setNotes(session.notes);
+                setQuiz(session.quiz);
+                setFlashcards(session.flashcards);
+                setTeacherScore(session.teacherScore);
+                setTeacherScore(session.teacherScore);
+                setVideoUrl(session.videoUrl || null);
+                setActiveTab('notes');
+            };
+
+            return (
+                <div className="flex h-screen w-full font-sans overflow-hidden bg-brand-dark">
+                    <Confetti active={showConfetti} />
+                    {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+                    {/* Animated Background Blobs */}
+                    <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                        <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-brand-primary rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-blob" />
+                        <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-brand-secondary rounded-full mix-blend-screen filter blur-[100px] opacity-20 animate-blob animation-delay-2000" />
+                        <div className="absolute top-[40%] left-[30%] w-[400px] h-[400px] bg-brand-accent rounded-full mix-blend-screen filter blur-[120px] opacity-10 animate-blob animation-delay-4000" />
+                        <div className="absolute top-[10%] left-[50%] w-[350px] h-[350px] bg-brand-coral rounded-full mix-blend-screen filter blur-[100px] opacity-10 animate-blob animation-delay-2000" />
+                        <div className="absolute bottom-[10%] right-[20%] w-[300px] h-[300px] bg-brand-neon rounded-full mix-blend-screen filter blur-[140px] opacity-8 animate-blob animation-delay-4000" />
+                    </div>
+
+                    {/* SIDEBAR */}
+                    <nav className="cpnav w-20 lg:w-72 glass-panel flex flex-col justify-between border-r border-white/10 relative z-50 backdrop-blur-2xl transition-all duration-300">
+                        <div>
+                            <div className="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-white/5">
+                                <div className="w-10 h-10 bg-gradient-to-br from-brand-primary to-brand-secondary rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/30 glow-pulse">
+                                    <Icons.Brain className="w-6 h-6 text-white" />
+                                </div>
+                                <span className="ml-4 font-bold text-xl tracking-tight hidden lg:block shimmer-text">ClassPulse AI</span>
+                            </div>
+
+                            <div className="p-4 space-y-2 mt-6">
+                                <NavButton active={activeTab === 'record'} onClick={() => setActiveTab('record')} icon={<Icons.Mic />} label="ClassPulse" />
+                                <NavButton active={activeTab === 'insights'} onClick={() => setActiveTab('insights')} icon={<Icons.TrendingUp />} label="ACIS Insights" />
+                                <div className="py-4"><div className="h-px bg-white/10 mx-4" /></div>
+                                <NavButton active={activeTab === 'notes'} onClick={() => setActiveTab('notes')} icon={<Icons.FileText />} label="Smart Notes" disabled={!notes} />
+                                <NavButton active={activeTab === 'video'} onClick={() => setActiveTab('video')} icon={<Icons.Video />} label="Video Lesson" disabled={!notes} />
+                                <NavButton active={activeTab === 'flashcards'} onClick={() => setActiveTab('flashcards')} icon={<Icons.Layers />} label="Flashcards" disabled={!flashcards.length} />
+                                <NavButton active={activeTab === 'quiz'} onClick={() => setActiveTab('quiz')} icon={<Icons.Sparkles />} label="Quiz Mode" disabled={!quiz.length} />
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-white/5 bg-black/20 space-y-3">
+                            <NavButton active={activeTab === 'history'} onClick={() => setActiveTab('history')} icon={<Icons.History />} label="Session History" />
+                            <div className="hidden lg:flex justify-center pt-1">
+                                <ThemeSwitcher theme={theme} setTheme={setTheme} />
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* MAIN CONTENT */}
+                    <main className="flex-1 relative overflow-hidden flex flex-col z-10">
+                        <div className="flex-1 relative z-10 overflow-y-auto p-4 lg:p-12 scroll-smooth">
+                            {activeTab === 'record' && (
+                                <RecordView
+                                    inputText={inputText}
+                                    setInputText={setInputText}
+                                    isRecording={isRecording}
+                                    toggleRecording={toggleRecording}
+                                    processContent={processContent}
+                                    isProcessing={isProcessing}
+                                    recordSecs={recordSecs}
+                                />
+                            )}
+                            {activeTab === 'notes' && notes && <NotesView notes={notes} teacherScore={teacherScore} showToast={showToast} />}
+                            {activeTab === 'video' && <VideoView videoUrl={videoUrl} generateVideo={generateVideo} isGenerating={isGeneratingVideo} />}
+                            {activeTab === 'flashcards' && <FlashcardsView cards={flashcards} />}
+                            {activeTab === 'quiz' && <QuizView
+                                questions={quiz}
+                                updateMemory={updateMemory}
+                                teacherScore={teacherScore}
+                                fireConfetti={fireConfetti}
+                                setActiveTab={setActiveTab}
+                                generateVideo={generateVideo}
+                            />}
+                            {activeTab === 'insights' && <InsightsView memory={longTermMemory} history={history} generateContext={generateContext} />}
+                            {activeTab === 'history' && <HistoryView history={history} onLoad={loadSession} />}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const NavButton = ({ active, onClick, icon, label, disabled }) => (
+            <button
+                onClick={onClick}
+                disabled={disabled}
+                className={`w-full flex items-center p-3.5 rounded-2xl transition-all duration-300 group relative overflow-hidden
+                    ${active ? 'bg-brand-primary text-white shadow-glow' : 'text-slate-400 hover:bg-white/5 hover:text-white'} 
+                    ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}
+                `}
+            >
+                {active && <div className="absolute inset-0 bg-gradient-to-r from-brand-primary to-brand-secondary opacity-100"></div>}
+                <span className={`relative z-10 ${active ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}>{React.cloneElement(icon, { size: 22, strokeWidth: active ? 2.5 : 2 })}</span>
+                <span className="relative z-10 ml-3 font-medium tracking-wide hidden lg:block">{label}</span>
+                {active && <div className="relative z-10 ml-auto w-2 h-2 rounded-full bg-white hidden lg:block shadow-sm animate-pulse"></div>}
+            </button>
+        );
+
+        // --- RECORD VIEW ---
+        const RecordView = ({ inputText, setInputText, isRecording, toggleRecording, processContent, isProcessing, recordSecs }) => {
+            const [hesitation, setHesitation] = useState(false);
+            const [loadingState, setLoadingState] = useState(0);
+            const lastInputTime = useRef(Date.now());
+
+            useEffect(() => {
+                if (!isProcessing) {
+                    setLoadingState(0);
+                    return;
+                }
+                const states = ["Reading text...", "Searching web context...", "Generating notes...", "Building flashcards...", "Finalizing analysis..."];
+                let step = 0;
+                setLoadingState(step);
+                const int = setInterval(() => {
+                    step = (step + 1) % states.length;
+                    setLoadingState(step);
+                }, 2000);
+                return () => clearInterval(int);
+            }, [isProcessing]);
+
+            useEffect(() => {
+                const checkInterval = setInterval(() => {
+                    if (Date.now() - lastInputTime.current > 4000 && inputText.length > 10 && !isProcessing) {
+                        setHesitation(true);
+                    } else {
+                        setHesitation(false);
+                    }
+                }, 1000);
+                return () => clearInterval(checkInterval);
+            }, [inputText, isProcessing]);
+
+            const handleChange = (e) => {
+                lastInputTime.current = Date.now();
+                setHesitation(false);
+                setInputText(e.target.value);
+            };
+
+            const fmtTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+            const hasContent = inputText.trim().length > 0;
+
+            return (
+                <div className="max-w-5xl mx-auto h-full flex flex-col animate-fade-in">
+                    <header className="mb-8 flex items-start justify-between">
+                        <div>
+                            <h1 className="text-5xl font-extrabold tracking-tight mb-2 gradient-text">ClassPulse</h1>
+                            <p className="text-slate-400 text-lg">Transcribe your lecture or paste notes to begin analysis.</p>
+                        </div>
+                        <div className="flex items-center gap-3 flex-wrap justify-end">
+                            {hasContent && <WordCounter text={inputText} />}
+                            {hesitation && (
+                                <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 text-yellow-200 rounded-full border border-yellow-500/30 animate-pulse backdrop-blur-md">
+                                    <Icons.AlertTriangle size={14} />
+                                    <span className="text-xs font-bold uppercase tracking-wide">Pacing Alert</span>
+                                </div>
+                            )}
+                            {isRecording && (
+                                <div className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-200 rounded-full border border-red-500/30 backdrop-blur-md">
+                                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                    <span className="text-xs font-bold uppercase tracking-wide">REC</span>
+                                    <span className="text-xs font-mono text-red-300">{fmtTime(recordSecs)}</span>
+                                </div>
+                            )}
+                        </div>
+                    </header>
+
+                    <div className={`flex-1 rounded-3xl p-1.5 flex flex-col relative overflow-hidden transition-all duration-500 ${hasContent ? 'shimmer-border glass-panel' : 'glass-panel'}`}>
+                        <textarea
+                            value={inputText}
+                            onChange={handleChange}
+                            placeholder="Start lecturing, typing, or recording..."
+                            className="w-full h-full bg-brand-dark/40 p-8 rounded-[20px] outline-none text-xl text-slate-200 placeholder:text-slate-600 resize-none font-sans leading-relaxed focus:bg-brand-dark/60 transition-colors selection:bg-brand-primary/40"
+                        />
+
+                        {/* Waveform overlay when recording */}
+                        {isRecording && (
+                            <div className="absolute top-4 right-6 opacity-70">
+                                <Waveform active={isRecording} />
+                            </div>
+                        )}
+
+                        {/* Processing Overlay */}
+                        {isProcessing && (
+                            <div className="absolute inset-0 bg-brand-dark/80 backdrop-blur-md z-20 flex flex-col items-center justify-center animate-fade-in">
+                                <div className="w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-brand-primary/20 to-brand-secondary/20 flex items-center justify-center glow-pulse relative">
+                                    <Icons.Brain className="text-white relative z-10 animate-blob" size={40} />
+                                    <div className="absolute inset-0 border-[3px] border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">AI is analyzing...</h3>
+                                <div className="text-brand-primary/80 font-mono text-sm uppercase tracking-widest min-h-[20px]">
+                                    {["Reading text...", "Searching web context...", "Generating notes...", "Building flashcards...", "Finalizing analysis..."][loadingState]}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/70 backdrop-blur-xl p-2.5 rounded-2xl shadow-2xl border border-white/10 transform transition-all hover:scale-105 hover:bg-black/80">
+                            <button type="button" onClick={toggleRecording}
+                                className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 ripple-btn
+                                    ${isRecording ? 'bg-red-500 text-white shadow-lg shadow-red-500/40' : 'bg-white/10 text-white hover:bg-white/20 hover:scale-110'}`}>
+                                {isRecording ? <Icons.Stop size={28} /> : <Icons.Mic size={28} />}
+                            </button>
+                            <div className="h-8 w-px bg-white/10 mx-1" />
+                            <button type="button" onClick={processContent} disabled={isProcessing}
+                                className={`px-8 h-14 rounded-xl font-bold text-lg flex items-center gap-3 transition-all duration-300 ripple-btn
+                                    ${hasContent && !isProcessing
+                                        ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white hover:shadow-glow-lg hover:scale-105'
+                                        : 'bg-white/5 text-slate-500 cursor-not-allowed'}`}>
+                                {isProcessing
+                                    ? <><Icons.Loader2 className="animate-spin" size={20} />Processing...</>
+                                    : <><Icons.Sparkles size={20} />Analyze Content</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- NOTES VIEW ---
+        const NotesView = ({ notes, teacherScore, showToast }) => {
+            const handleCopy = () => { navigator.clipboard.writeText(notes); showToast("Notes copied to clipboard"); };
+
+            // Enhanced Markdown Renderer to support inline bolding
+            const renderMarkdown = (text) => {
+                const parseInline = (line) => {
+                    const parts = line.split(/(\*\*.*?\*\*)/g);
+                    return parts.map((part, i) => {
+                        if (part.startsWith('**') && part.endsWith('**')) {
+                            return <strong key={i} className="text-white font-bold">{part.slice(2, -2)}</strong>;
+                        }
+                        return part;
+                    });
+                };
+
+                return text.split('\n').map((line, i) => {
+                    if (line.startsWith('## ')) return <h2 key={i} className="text-2xl font-bold text-indigo-200 mt-8 mb-4 pb-2 border-b border-white/10 flex items-center gap-2"><span className="w-1.5 h-6 bg-brand-primary rounded-full"></span>{parseInline(line.replace('## ', ''))}</h2>;
+                    if (line.startsWith('# ')) return <h1 key={i} className="text-4xl font-extrabold text-white mt-8 mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">{parseInline(line.replace('# ', ''))}</h1>;
+                    if (line.startsWith('- ')) return <li key={i} className="ml-4 list-none relative pl-6 text-slate-300 mb-3 before:content-['•'] before:absolute before:left-0 before:text-brand-primary before:font-bold">{parseInline(line.replace('- ', ''))}</li>;
+                    if (line.startsWith('> ')) return <blockquote key={i} className="my-6 border-l-4 border-brand-accent bg-brand-accent/5 p-4 rounded-r-xl italic text-slate-300">{parseInline(line.replace('> ', ''))}</blockquote>;
+                    return <p key={i} className="text-slate-300 leading-relaxed mb-4 text-lg">{parseInline(line)}</p>;
+                });
+            };
+
+            return (
+                <div className="max-w-7xl mx-auto animate-slide-up pb-20 flex flex-col xl:flex-row gap-8">
+                    <div className="flex-1">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-3xl font-bold text-white tracking-tight">Smart Notes</h2>
+                            <button onClick={handleCopy} className="p-3 text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 rounded-xl transition-all border border-brand-primary/20"><Icons.Copy size={20} /></button>
+                        </div>
+                        <div className="glass-panel rounded-2xl p-10 md:p-14 min-h-[60vh] text-slate-200 shadow-2xl">
+                            {renderMarkdown(notes)}
+                        </div>
+                    </div>
+
+                    {/* ACIS Topic Explanation Rating */}
+                    {teacherScore && (
+                        <div className="w-full xl:w-96 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                            <div className="glass-panel-light rounded-3xl p-8 sticky top-6 shadow-glow border-t-4 border-t-brand-primary bg-white/95">
+                                <h3 className="font-bold text-slate-900 flex items-center gap-2 mb-6 text-xl">
+                                    <Icons.Eye size={24} className="text-brand-primary" /> Quality Audit
+                                </h3>
+                                <div className="mb-8 text-center relative">
+                                    <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-2xl transform scale-75"></div>
+                                    <div className={`text-6xl font-black relative z-10 ${teacherScore.score > 7.5 ? 'text-emerald-500' : teacherScore.score > 5 ? 'text-amber-500' : 'text-rose-500'} mb-2`}>{teacherScore.score}</div>
+                                    <div className="text-xs text-slate-400 font-bold uppercase tracking-widest">ACIS Score</div>
+                                </div>
+
+                                <div className="space-y-6 mb-8">
+                                    {[
+                                        { label: 'Simplicity', val: teacherScore.simplicity, color: 'bg-blue-500' },
+                                        { label: 'Clarity', val: teacherScore.clarity, color: 'bg-indigo-500' },
+                                        { label: 'Examples', val: teacherScore.examples, color: 'bg-purple-500' }
+                                    ].map((stat, idx) => (
+                                        <div key={idx}>
+                                            <div className="flex justify-between text-sm mb-2 font-semibold text-slate-600"><span>{stat.label}</span><span>{stat.val}/10</span></div>
+                                            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden"><div className={`${stat.color} h-2.5 rounded-full transition-all duration-1000 ease-out`} style={{ width: `${stat.val * 10}%` }}></div></div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-inner">
+                                    <p className="text-sm text-slate-700 italic font-medium leading-relaxed">"{teacherScore.feedback}"</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const VideoView = ({ videoUrl, generateVideo, isGenerating }) => {
+            return (
+                <div className="max-w-5xl mx-auto animate-slide-up flex flex-col items-center">
+                    <h2 className="text-3xl font-bold text-white mb-2 tracking-tight self-start">Video Lesson</h2>
+                    <p className="text-slate-400 mb-8 self-start">Watch a generated summary of your concept.</p>
+
+                    {videoUrl ? (
+                        <div className="w-full aspect-video glass-panel rounded-3xl overflow-hidden shadow-2xl relative group">
+                            <video src={videoUrl} controls className="w-full h-full object-cover" />
+                        </div>
+                    ) : (
+                        <div className="w-full aspect-video glass-panel rounded-3xl flex flex-col items-center justify-center p-10 border-2 border-dashed border-white/10 bg-black/20">
+                            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                                <Icons.Video size={40} className="text-slate-400" />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">No Video Generated</h3>
+                            <p className="text-slate-400 mb-8 text-center max-w-md">Create a short narrated video summary of these notes to reinforce learning.</p>
+
+                            <button
+                                onClick={generateVideo}
+                                disabled={isGenerating}
+                                className={`px-8 py-4 rounded-xl font-bold text-lg flex items-center gap-3 transition-all ${isGenerating ? 'bg-white/10 text-white/50' : 'bg-brand-primary text-white hover:bg-brand-primary/90 hover:scale-105 shadow-glow'}`}
+                            >
+                                {isGenerating ? (
+                                    <><Icons.Loader2 className="animate-spin" size={24} /> Generating Lesson...</>
+                                ) : (
+                                    <><Icons.Sparkles size={24} /> Generate Video Lesson</>
+                                )}
+                            </button>
+
+                            {isGenerating && <p className="mt-4 text-sm text-slate-500 animate-pulse">This may take up to a minute...</p>}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const FlashcardsView = ({ cards }) => {
+            const [flipped, setFlipped] = useState({});
+            const toggleFlip = (index) => setFlipped(prev => ({ ...prev, [index]: !prev[index] }));
+            return (
+                <div className="max-w-6xl mx-auto animate-slide-up">
+                    <h2 className="text-4xl font-extrabold mb-2 tracking-tight gradient-text">Knowledge Cards</h2>
+                    <p className="text-slate-400 mb-8">{cards.length} cards ready · Click to flip</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-10">
+                        {cards.map((card, idx) => (
+                            <div key={idx} className={`h-80 cursor-pointer flip-card group ${flipped[idx] ? 'flipped' : ''}`} onClick={() => toggleFlip(idx)}>
+                                <div className="flip-card-inner relative w-full h-full rounded-3xl shadow-2xl transition-all duration-500 hover:scale-[1.02]">
+                                    {/* FRONT */}
+                                    <div className="flip-card-front glass-panel bg-gradient-to-br from-white/10 to-white/5 rounded-3xl p-8 flex flex-col items-center justify-center text-center border border-white/20">
+                                        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mb-6 text-brand-accent backdrop-blur-sm">
+                                            <Icons.Lightbulb size={32} />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-white leading-tight">{card.term}</h3>
+                                        <p className="text-xs text-brand-primary mt-auto font-bold uppercase tracking-widest opacity-80">Tap to Reveal</p>
+                                    </div>
+                                    {/* BACK */}
+                                    <div className="flip-card-back bg-gradient-to-br from-brand-primary to-brand-secondary text-white rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-glow border border-white/20">
+                                        <p className="text-lg font-medium leading-relaxed text-white/95">{card.definition}</p>
+                                        <div className="mt-auto w-12 h-1 bg-white/30 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const QuizView = ({ questions, updateMemory, teacherScore, fireConfetti, setActiveTab, generateVideo }) => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showResult, setShowResult] = useState(false);
+            const [answers, setAnswers] = useState([]);
+            const [analysis, setAnalysis] = useState(null);
+
+            const handleGenerateRemediation = (remediation) => {
+                if (remediation.type === 'video') {
+                    setActiveTab('video');
+                    generateVideo();
+                } else if (remediation.type === 'slides') {
+                    setActiveTab('flashcards');
+                }
+            };
+
+            const handleAnswer = (option) => {
+                if (answers.find(a => a.qId === questions[currentIndex].id)) return;
+                const isCorrect = option.type === 'correct';
+                if (isCorrect) setScore(s => s + 1);
+                setAnswers([...answers, {
+                    qId: questions[currentIndex].id,
+                    correct: isCorrect,
+                    selected: option.text,
+                    type: option.type,
+                    concept: questions[currentIndex].concept,
+                    explanation: questions[currentIndex].explanation
+                }]);
+            };
+
+            const nextQuestion = () => {
+                if (currentIndex + 1 < questions.length) setCurrentIndex(c => c + 1);
+                else finishQuiz();
+            };
+
+            const finishQuiz = () => {
+                // Pass all answers to the mastery tracker
+                updateMemory(answers); // <-- CHANGED: Pass full answers array
+
+                const susScore = Math.round((score / questions.length) * 100);
+                const misconceptions = answers.filter(a => a.type === 'misconception');
+                const uniqueMisconceptions = [...new Set(misconceptions.map(a => a.concept))];
+
+                let remediation = { action: 'advance', type: 'none', reason: "Excellent grasp of concepts." };
+                if (susScore < 50) {
+                    remediation = { action: 'deep_remediation', type: 'video', reason: "Foundational gaps detected. You need a deeper visual review.", tool: "Google Veo 3" };
+                } else if (susScore < 80 || uniqueMisconceptions.length > 0) {
+                    remediation = { action: 'review', type: 'slides', reason: "Specific nuances missed or minor misconceptions found.", tool: "NotebookLM" };
+                }
+
+                if (susScore >= 70 && fireConfetti) fireConfetti();
+
+                setAnalysis({ susScore, uniqueMisconceptions, remediation });
+                setShowResult(true);
+            };
+
+            if (showResult && analysis) {
+                return (
+                    <div className="max-w-4xl mx-auto mt-8 animate-bounce-in pb-20">
+                        <h2 className="text-3xl font-extrabold mb-6 gradient-text">Quiz Complete!</h2>
+                        <div className="grid md:grid-cols-3 gap-6 mb-8">
+                            <div className="glass-panel rounded-3xl p-8 flex flex-col items-center justify-center bg-gradient-to-br from-white/10 to-transparent">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Mastery Score</span>
+                                <div className={`text-7xl font-black ${analysis.susScore > 70 ? 'text-emerald-400' : analysis.susScore > 40 ? 'text-amber-400' : 'text-rose-400'} drop-shadow-lg`}>
+                                    {analysis.susScore}%
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2 glass-panel rounded-3xl p-8 bg-black/20">
+                                <h3 className="font-bold text-white flex items-center gap-3 mb-6 text-lg">
+                                    <Icons.AlertTriangle size={20} className="text-rose-500" /> Concept Diagnosis
+                                </h3>
+                                {analysis.uniqueMisconceptions.length > 0 ? (
+                                    <div className="space-y-3">
+                                        <p className="text-sm text-slate-400 mb-2">Detected confusion in:</p>
+                                        {analysis.uniqueMisconceptions.map((c, i) => (
+                                            <div key={i} className="flex items-center gap-3 bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">
+                                                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                                                <span className="font-semibold text-rose-200 text-sm">{c}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-500">
+                                        <Icons.Check size={40} className="mb-3 text-emerald-500/50" />
+                                        <p className="text-sm font-medium">Clean conceptual model.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Remediation */}
+                        <div className={`rounded-3xl p-10 border mb-8 relative overflow-hidden transition-all hover:scale-[1.01] ${analysis.remediation.type === 'video' ? 'bg-slate-900 border-slate-700' : 'bg-gradient-to-r from-brand-primary/20 to-brand-secondary/20 border-brand-primary/30'}`}>
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className={`p-3 rounded-2xl ${analysis.remediation.type === 'video' ? 'bg-white/10' : 'bg-brand-primary'}`}>
+                                        <Icons.Zap size={24} className="text-white" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-white">ACIS Remediation Plan</h3>
+                                </div>
+
+                                <p className="mb-8 text-lg text-slate-300 leading-relaxed max-w-2xl">
+                                    {analysis.remediation.reason} <br />
+                                    <span className="text-white font-semibold block mt-2">Strategy: Generate {analysis.remediation.type === 'video' ? 'Visual Explanation' : 'Review Deck'} using {analysis.remediation.tool}.</span>
+                                </p>
+
+                                {analysis.remediation.type !== 'none' && (
+                                    <div className="flex gap-4">
+                                        <button onClick={() => handleGenerateRemediation(analysis.remediation)} className="px-8 py-4 rounded-xl font-bold flex items-center gap-3 bg-white text-slate-900 hover:bg-slate-200 transition-colors shadow-lg shadow-white/10 group animate-pulse">
+                                            {analysis.remediation.type === 'video' ? <Icons.Video size={20} className="group-hover:text-brand-accent transition-colors" /> : <Icons.Layers size={20} className="group-hover:text-brand-primary transition-colors" />}
+                                            Generate Review Content
+                                        </button>
+                                        <button onClick={() => { setShowResult(false); setCurrentIndex(0); setScore(0); setAnswers([]); }} className="px-8 py-4 rounded-xl font-bold border border-white/20 text-white hover:bg-white/10 transition-colors">
+                                            Return to Menu
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <button onClick={() => setActiveTab('record')} className="w-full py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-bold hover:bg-white/10 transition-colors mt-6">
+                            Start New Assessment
+                        </button>
+                    </div>
+                );
+            }
+
+            const currentQ = questions[currentIndex];
+            const currentAnswer = answers.find(a => a.qId === currentQ.id);
+
+            return (
+                <div className="max-w-3xl mx-auto mt-8 animate-slide-up pb-20">
+                    <div className="flex items-center justify-between mb-8">
+                        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Question {currentIndex + 1} / {questions.length}</span>
+                        {currentQ.isRemediation && <span className="text-xs px-3 py-1 bg-purple-500/20 text-purple-200 rounded-full font-bold border border-purple-500/30">Targeted Review</span>}
+                    </div>
+
+                    <div className="glass-panel rounded-3xl p-10 relative overflow-hidden shadow-2xl">
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-white/10">
+                            <div className="h-full bg-brand-accent transition-all duration-500 ease-out shadow-[0_0_10px_#38bdf8]" style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}></div>
+                        </div>
+
+                        <h3 className="text-2xl font-bold text-white mb-10 leading-snug">{currentQ.question}</h3>
+
+                        <div className="space-y-4">
+                            {currentQ.options.map((opt, idx) => {
+                                let style = "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:border-white/30";
+                                if (currentAnswer) {
+                                    if (opt.type === 'correct') style = "border-emerald-500/50 bg-emerald-500/20 text-white shadow-[0_0_15px_rgba(16,185,129,0.2)]";
+                                    else if (opt.text === currentAnswer.selected) style = "border-rose-500/50 bg-rose-500/20 text-white";
+                                    else style = "opacity-50 border-transparent bg-transparent";
+                                }
+                                return (
+                                    <button key={idx} onClick={() => handleAnswer(opt)} disabled={!!currentAnswer} className={`w-full text-left p-5 rounded-2xl border-2 transition-all duration-300 font-medium text-lg flex justify-between items-center group ${style} ${!currentAnswer && 'hover:scale-[1.01]'}`}>
+                                        <span>{opt.text}</span>
+                                        {currentAnswer && opt.type === 'correct' && <Icons.Check size={24} className="text-emerald-400" />}
+                                        {currentAnswer && opt.text === currentAnswer.selected && opt.type !== 'correct' && <Icons.X size={24} className="text-rose-400" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* EXPLANATION REVEAL */}
+                        {currentAnswer && (
+                            <div className="mt-8 pt-6 border-t border-white/10 animate-fade-in">
+                                <div className="bg-brand-primary/10 rounded-xl p-5 border border-brand-primary/20 mb-6">
+                                    <div className="flex items-center gap-2 mb-2 text-brand-accent font-bold text-sm uppercase tracking-wide">
+                                        <Icons.Lightbulb size={16} /> Insight
+                                    </div>
+                                    <p className="text-slate-200 leading-relaxed">{currentAnswer.explanation || "Correct answer logic applies here."}</p>
+                                </div>
+                                <div className="flex justify-end">
+                                    <button onClick={nextQuestion} className="px-8 py-3 bg-white text-brand-dark rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center gap-2 shadow-lg hover:scale-105 transform duration-200">
+                                        {currentIndex + 1 === questions.length ? "See Results" : "Next Question"} <Icons.ChevronRight size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const InsightsView = ({ memory, history }) => {
+            const weakList = memory.weakConcepts || [];
+            // Dynamically calculate the last 5 session scores for the velocity chart
+            const velocityBars = useMemo(() => getVelocityBars(history), [history]);
+
+            // Calculate the average score for display
+            const validScores = history
+                .filter(item => item.teacherScore && item.teacherScore.score != null)
+                .map(item => item.teacherScore.score);
+            const averageScore = validScores.length > 0
+                ? (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(1)
+                : 'N/A';
+            const velocityLabel = validScores.length > 0 ? `Avg. Score: ${averageScore}/10` : 'No recent data';
+
+
+            return (
+                <div className="max-w-5xl mx-auto animate-slide-up pb-20">
+                    <h2 className="text-3xl font-bold text-white mb-8 flex items-center gap-4">
+                        <div className="p-2 bg-brand-primary rounded-lg shadow-glow"><Icons.Brain size={32} className="text-white" /></div>
+                        Neural Profile
+                    </h2>
+
+                    <div className="grid md:grid-cols-2 gap-8 mb-8">
+                        <div className="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                            <h3 className="font-bold text-slate-200 mb-6 text-xl">Retention Gaps</h3>
+                            {weakList.length === 0 ? (
+                                <div className="text-center py-12 text-slate-500 flex flex-col items-center">
+                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4"><Icons.Check size={32} className="text-emerald-500" /></div>
+                                    <p>Optimal retention observed.</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-wrap gap-3">
+                                    {weakList.map((c, i) => (
+                                        <span key={i} className="px-4 py-2 bg-rose-500/10 text-rose-200 rounded-xl border border-rose-500/20 text-sm font-semibold shadow-sm">
+                                            {c}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            <p className="text-xs text-slate-500 mt-6 font-medium uppercase tracking-wider">ACIS will adapt future quizzes to target these.</p>
+                        </div>
+
+                        {/* DYNAMIC LEARNING VELOCITY CHART */}
+                        <div className="glass-panel p-8 rounded-3xl">
+                            <h3 className="font-bold text-slate-200 mb-6 text-xl">Learning Velocity</h3>
+                            <p className="text-sm text-slate-400 mb-6">{velocityLabel}</p>
+                            <div className="flex items-end justify-center h-40 text-slate-600">
+                                <div className="flex items-end gap-3 h-full w-full justify-center px-4">
+                                    {velocityBars.map((bar, index) => (
+                                        <div
+                                            key={index}
+                                            className={`w-8 rounded-t-lg relative group transition-all duration-500 ease-out 
+                                                ${bar.isLatest ? 'bg-brand-accent shadow-[0_0_15px_rgba(56,189,248,0.5)]' : 'bg-brand-primary/60 hover:bg-brand-primary/80'}
+                                                ${bar.score === null && 'bg-white/10 opacity-50'}
+                                            `}
+                                            style={{ height: `${bar.height}%` }}
+                                        >
+                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-black text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold whitespace-nowrap">
+                                                {bar.isLatest && bar.score !== null ? `Latest: ${bar.score}/10` : bar.score !== null ? `${bar.score}/10` : 'No Score'}
+                                            </div>
+                                            <div className="absolute bottom-[-20px] left-1/2 -translate-x-1/2 text-xs text-slate-500 font-bold uppercase">
+                                                {bar.isLatest ? 'Latest' : `S ${velocityBars.length - index}`}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const HistoryView = ({ history, onLoad }) => {
+            if (!history || history.length === 0) return <div className="flex flex-col items-center justify-center h-full text-slate-500"><Icons.History size={80} className="mb-6 opacity-20" /><p className="text-lg">No sessions recorded.</p></div>;
+            return (
+                <div className="max-w-5xl mx-auto animate-slide-up">
+                    <h2 className="text-3xl font-bold text-white mb-8">Timeline</h2>
+                    <div className="grid gap-4">
+                        {history.map(item => (
+                            <div key={item.id} onClick={() => onLoad(item)} className="glass-panel p-6 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group border border-white/5 hover:border-brand-primary/30">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-brand-primary group-hover:text-white transition-all duration-300 shadow-inner group-hover:shadow-glow"><Icons.FileText size={28} /></div>
+                                        <div>
+                                            <h3 className="font-bold text-lg text-slate-200 group-hover:text-white transition-colors">Lecture Analysis</h3>
+                                            <p className="text-sm text-slate-500 font-mono mt-1">{item.date} • {item.time}</p>
+                                        </div>
+                                    </div>
+                                    <div className="p-2 bg-white/5 rounded-lg group-hover:bg-white/10 transition-colors">
+                                        <Icons.ChevronRight size={20} className="text-slate-400 group-hover:text-white" />
+                                    </div>
+                                </div>
+                                <div className="mt-6 pl-20">
+                                    <p className="text-slate-400 text-sm line-clamp-2 bg-black/20 p-3 rounded-xl border border-white/5 font-mono leading-relaxed">"{item.preview}"</p>
+                                    {item.teacherScore && (
+                                        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-brand-primary/10 rounded-full border border-brand-primary/20">
+                                            <Icons.Sparkles size={12} className="text-brand-primary" />
+                                            <span className="text-xs font-bold text-brand-primary">Quality Score: {item.teacherScore.score}/10</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
