@@ -59,26 +59,37 @@ This allows teachers to conduct immediate assessments at the end of a class to v
     git clone [https://github.com/your-username/classpulse-ai.git](https://github.com/your-username/classpulse-ai.git)
     ```
 
-2.  **Add API Key:**
-    * Open `index.html`.
-    * Find the `const API_KEY` variable (around line 360).
-    * Insert your Google Gemini API key.
-    ```javascript
-    const API_KEY = "YOUR_OWN_GEMINI_KEY";
+2.  **Set up environment variables (recommended and secure):**
+    ```bash
+    cp .env.example .env
+    ```
+    Then update `.env` with your own values, such as:
+    ```env
+    GEMINI_API_KEY=your_gemini_api_key_here
+    HF_TOKEN=your_huggingface_token_here
     ```
 
-3.  **Run:**
-    * Simply open `index.html` in Chrome or Edge browser.
-    * **Note:** Microphone access is required.
+3.  **Run locally (FastAPI backend + UI):**
+    ```bash
+    uvicorn ClassPulse_AI.backend.main:app --reload
+    ```
+    Open `http://127.0.0.1:8000` in Chrome or Edge and allow microphone access.
+
+## 🔐 Environment & Security Notes
+
+- Never hardcode API keys directly in source files.
+- Never commit `.env` files or secrets to Git.
+- If a key is exposed, rotate/revoke it immediately.
+- See [SECURITY.md](SECURITY.md) for full project security guidance.
 
 
 ## 🤝 Contribution
 
-This project is open for enhancements! We welcome ideas such as:
+This project is open for enhancements! Please review [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. We welcome ideas such as:
 * Exporting quiz results to PDF.
 * Student login systems.
 * Cloud database integration.
 
 ## 📝 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
